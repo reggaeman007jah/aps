@@ -1,9 +1,7 @@
 
 // purpose - to script the exploration of any given landmass
 
-
 // this needs an origin point, for now use gvar START, but could be given mapCentre?
-
 
 // _lvl1_N = start getPos [[100, 0], [200, 0], [300, 0], [400, 0], [500, 0]];
 _N1 = start getPos [100, 0];

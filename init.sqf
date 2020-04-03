@@ -1,4 +1,3 @@
-
 sleep 1;
 
 // spawn player and two helis at random map location
@@ -15,7 +14,6 @@ sleep 1;
 //heli2 = "MELB_MH6M" createVehicle postion Player;
 sleep 0.5;
 
-
 // initialise APS
 execVM "autoPatrolSystem\autoPatrolSystem.sqf";
 systemchat "debug --- APS ACTIVATED";
@@ -26,7 +24,6 @@ sleep 0.5;
 player setVariable ["isBusy", 111]; // i.e. not busy and needs a task
 execVM "autoPatrolSystem\checkSF.sqf";
 sleep 0.5;
-
 
 // AI Behaviour Management
 player addAction ["Change Behaviour to Combat", "Modes\combatMode.sqf"];	
@@ -50,12 +47,9 @@ heliHits = 0;
 heli1 addEventHandler ["HandleDamage", {execVM "heliDamageSystem\damageCounter.sqf";}];
 execVM "heliDamageSystem\damageManager.sqf";
 
-
-while {true} do
-{
+// garbage collection
+while {true} do {
 	sleep 30;
+	systemChat "cleanup";
 	{ deleteVehicle _x } forEach allDead;
 };
-
-
-

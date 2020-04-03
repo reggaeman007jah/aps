@@ -63,9 +63,7 @@
 enableEnvironment [false, true];
 
 
-
 // LOCATIONS -----------------------------------------------------------------------------------------------------
-
 // system to generate initial location, and patrol objective location 
 start = position player;
 _startPosition = position player;
@@ -180,7 +178,6 @@ sleep 2;
 
 
 // CREATE FRIENDLY TROOPS -----------------------------------------------------------------------------------------
-
 // currently the initial creation only triggers if there are less than 10 friendly units in battlearea
 // if >= 11 blufor in battlearea, you are expected to attack the obj with what you already have 
 // RF rules will still apply here
@@ -189,7 +186,7 @@ blueSpawn = {
 
 	_units = allUnits inAreaArray "BattleArea";
 	_unitCount = count _units;
-	
+
 	// then count units per side in marker area 
 	_opforCount = 0;
 	_blueforCount = 0;
@@ -200,12 +197,12 @@ blueSpawn = {
 			case WEST: {_blueforCount = _blueforCount + 1};
 		};
 	} forEach _units;
-													
+
 	//systemChat ["debug --- defenders = %1", _blueforCount];
 	sleep 1;
 	//systemChat ["debug --- attackers = %1", _opforCount];
 	sleep 1;
-													
+
 	if (_blueforCount > 10) then // key trigger for whether units are created - here no units are created, all existing are sent in however
 	{
 		_bluforDefence1 = allUnits inAreaArray "BattleArea"; 
@@ -221,8 +218,8 @@ blueSpawn = {
 	};
 	// note, this will instruct any existng blufor units to move to the obj, regardless of whether they are under your command or not
 	// you can of course override this order if you wish
-	
-	
+
+
 	if (_blueforCount <= 10)  then 
 	{						
 		systemChat "debug --- patrol units initialising";
@@ -358,7 +355,6 @@ blueSpawn = {
 
 		sleep 1;
 
-
 		for "_i" from 1 to 2 do // custom medics
 		{
 			bluGroup = createGroup west;
@@ -423,7 +419,6 @@ blueSpawn = {
 		};
 
 		sleep 1;
-
 
 		for "_i" from 1 to 2 do // custom marksman
 		{
@@ -493,7 +488,6 @@ blueSpawn = {
 
 
 // COMBAT MANAGER ---------------------------------------------------------------------------------------------------
-
 // the values below triggers whether or not to RF blufor troops
 RGG_doNotReinforce = 16;
 RGG_reinforce = 15;
@@ -511,10 +505,8 @@ RGG_bluforHold = 15;
 
 // note, there is currently duplcation above, so see if these can be merged, to enable removal of two globals (three actually)
 
-
-
 _patrolObj = {
-																		
+
 	// create small group at dest, or near dest, and send them to start, to engage patrol before they arrive at dest..
 	_rndOp1 = selectRandom [2, 4, 6, 8];
 	_rndtype = selectRandom ["o_g_soldier_ar_f", "o_g_soldier_gl_f", "o_g_sharpshooter_f", "o_soldieru_lat_f"];
@@ -531,7 +523,7 @@ _patrolObj = {
 	};
 
 	sleep 5;
-	
+
 	// initial opfor defenders
 	_rndOp1 = selectRandom [4, 6, 8, 10, 12];
 	_rndtype = selectRandom ["o_g_soldier_ar_f", "o_g_soldier_gl_f", "o_g_sharpshooter_f", "o_soldieru_lat_f"];
@@ -550,7 +542,6 @@ _patrolObj = {
 	};
 	RFCHECK = true;
 
-
 	// looped check of opfor defenders - this will run until initial opfor group is almost eliminated
 	// do we need an inner BZ to enable the below count?
 	while {RFCHECK} do 
@@ -568,9 +559,9 @@ _patrolObj = {
 				case WEST: {_blueforCount1 = _blueforCount1 + 1};
 			};
 		} forEach _units;
-											
+
 		// hint format ["debug --- OPFOR DEFENDERS = %1", _opforCount1];
-													
+
 		if ((_opforCount1) <= 2)  then // this is the decider-value as to whether the second round of enemy moves in
 		{
 			systemChat "Initial defenders neutralised, prepare for OPFOR RF .. !!!";
@@ -578,10 +569,8 @@ _patrolObj = {
 			BLUEDEFEND = true;
 			sleep 60;
 		};
-
 		sleep 2;
 	};
-
 
 	// move blufor into defensive position
 	if (BLUEDEFEND) then
@@ -603,41 +592,65 @@ _patrolObj = {
 		// stance change!?
 
 		systemChat "debug --- 360 DEFENCE ..!!!";
-		
 		sleep 30; // pacer wait
 
 		BLUDEFEND = false; // completes defend state
 		INCOMING = true; // starts main onslaught
 	};
-		
-		
+
 	// second wave of attackers when initial opfor group is killed
-	if (INCOMING) then 
-	{
-																			
+	if (INCOMING) then {
+
 		systemChat "debug --- second attack wave incoming";																	
 		sleep 30;
 
-			_outcome = random 99; 
-			hint str _outcome; 
-			systemChat (format ["%1",_outcome]);
-			sleep 1;
-			if ((_outcome) <= 15) then 
+		_outcome = random 99; 
+		hint str _outcome; 
+		systemChat (format ["%1",_outcome]);
+		sleep 1;
+		if ((_outcome) <= 15) then 
+		{
+			systemChat "call 360 attack";
+		} else {
+			if ((_outcome) <= 30) then
 			{
-				systemChat "call 360 attack";
-			} 
-			else
-			{
-				if ((_outcome) <= 30) then
-				{
-					// two point attack
+				// two point attack
 
+				_opCount = east countSide allUnits;
+				_rndOp1 = selectRandom [10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]; // force size
+				_randomBehaviour = selectRandom ["STEALTH", "COMBAT", "AWARE"]; // behaviour
+					
+				_pos1 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
+				_pos2 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
+				// hint format ["DEBUG -- RF BEHAVIOUR = %1", _randomBehaviour]; 
+				// hint format ["Incoming RF = %1", _rndOp1];
+				// sleep 5;
+
+				for "_i" from 1 to _rndOp1 do 
+				{						
+					sleep 2;
+					systemChat "debug --- two point attack"; 
+					_grp = createGroup east;
+					_pos = selectrandom [_pos1, _pos2];
+					_rndtype = selectRandom ["o_g_soldier_ar_f", "o_g_soldier_gl_f", "o_g_sharpshooter_f", "o_soldieru_lat_f"];			
+					_randomDir = selectRandom [0, 45, 90, 135, 180, 225, 270, 315]; // units spawn from 8 main compass points
+					_unit = _grp createUnit [_rndtype, _pos, [], 1, "none"]; 
+					sleep 1;
+					_moveTo = dest getPos [5,_randomDir]; // 5m = they will try to overrun the patrol position!! 
+					_unit doMove _moveTo;
+					_unit setUnitPos "AUTO";
+					_unit setBehaviour _randomBehaviour;
+				}; 
+			} else {
+				if ((_outcome) <= 60) then {
+					// call three point attack
 					_opCount = east countSide allUnits;
 					_rndOp1 = selectRandom [10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]; // force size
 					_randomBehaviour = selectRandom ["STEALTH", "COMBAT", "AWARE"]; // behaviour
-						
+					
 					_pos1 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
 					_pos2 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
+					_pos3 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
 					// hint format ["DEBUG -- RF BEHAVIOUR = %1", _randomBehaviour]; 
 					// hint format ["Incoming RF = %1", _rndOp1];
 					// sleep 5;
@@ -645,9 +658,34 @@ _patrolObj = {
 					for "_i" from 1 to _rndOp1 do 
 					{						
 						sleep 2;
-						systemChat "debug --- two point attack"; 
+						systemChat "debug --- three point attack"; 
 						_grp = createGroup east;
-						_pos = selectrandom [_pos1, _pos2];
+						_pos = selectrandom [_pos1, _pos2, _pos3];
+						_rndtype = selectRandom ["o_g_soldier_ar_f", "o_g_soldier_gl_f", "o_g_sharpshooter_f", "o_soldieru_lat_f"];			
+						_randomDir = selectRandom [0, 45, 90, 135, 180, 225, 270, 315]; // units spawn from 8 main compass points
+						_unit = _grp createUnit [_rndtype, _pos, [], 1, "none"]; 
+						sleep 1;
+						_moveTo = dest getPos [5,_randomDir]; // 5m = they will try to overrun the patrol position!! 
+						_unit doMove _moveTo;
+						_unit setUnitPos "AUTO";
+						_unit setBehaviour _randomBehaviour;
+					}; 
+				} else {
+					// call single point attack
+					_opCount = east countSide allUnits;
+					_rndOp1 = selectRandom [10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]; // force size
+					_randomBehaviour = selectRandom ["STEALTH", "COMBAT", "AWARE"]; // behaviour
+					_pos = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
+
+					// hint format ["DEBUG -- RF BEHAVIOUR = %1", _randomBehaviour]; 
+					// hint format ["Incoming RF = %1", _rndOp1];
+					// sleep 5;
+
+					for "_i" from 1 to _rndOp1 do 
+					{						
+						sleep 2;
+						systemChat "debug --- single point attack"; 
+						_grp = createGroup east;
 						_rndtype = selectRandom ["o_g_soldier_ar_f", "o_g_soldier_gl_f", "o_g_sharpshooter_f", "o_soldieru_lat_f"];			
 						_randomDir = selectRandom [0, 45, 90, 135, 180, 225, 270, 315]; // units spawn from 8 main compass points
 						_unit = _grp createUnit [_rndtype, _pos, [], 1, "none"]; 
@@ -658,67 +696,8 @@ _patrolObj = {
 						_unit setBehaviour _randomBehaviour;
 					}; 
 				}
-				else 
-				{
-					if ((_outcome) <= 60) then
-					{
-						// call three point attack
-						_opCount = east countSide allUnits;
-						_rndOp1 = selectRandom [10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]; // force size
-						_randomBehaviour = selectRandom ["STEALTH", "COMBAT", "AWARE"]; // behaviour
-						
-						_pos1 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
-						_pos2 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
-						_pos3 = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
-						// hint format ["DEBUG -- RF BEHAVIOUR = %1", _randomBehaviour]; 
-						// hint format ["Incoming RF = %1", _rndOp1];
-						// sleep 5;
-
-						for "_i" from 1 to _rndOp1 do 
-						{						
-							sleep 2;
-							systemChat "debug --- three point attack"; 
-							_grp = createGroup east;
-							_pos = selectrandom [_pos1, _pos2, _pos3];
-							_rndtype = selectRandom ["o_g_soldier_ar_f", "o_g_soldier_gl_f", "o_g_sharpshooter_f", "o_soldieru_lat_f"];			
-							_randomDir = selectRandom [0, 45, 90, 135, 180, 225, 270, 315]; // units spawn from 8 main compass points
-							_unit = _grp createUnit [_rndtype, _pos, [], 1, "none"]; 
-							sleep 1;
-							_moveTo = dest getPos [5,_randomDir]; // 5m = they will try to overrun the patrol position!! 
-							_unit doMove _moveTo;
-							_unit setUnitPos "AUTO";
-							_unit setBehaviour _randomBehaviour;
-						}; 
-					}
-					else
-					{
-						// call single point attack
-						_opCount = east countSide allUnits;
-						_rndOp1 = selectRandom [10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]; // force size
-						_randomBehaviour = selectRandom ["STEALTH", "COMBAT", "AWARE"]; // behaviour
-						_pos = [dest, 400, 500] call BIS_fnc_findSafePos; // single point spawn 400-500m away from Dest
-
-						// hint format ["DEBUG -- RF BEHAVIOUR = %1", _randomBehaviour]; 
-						// hint format ["Incoming RF = %1", _rndOp1];
-						// sleep 5;
-
-						for "_i" from 1 to _rndOp1 do 
-						{						
-							sleep 2;
-							systemChat "debug --- single point attack"; 
-							_grp = createGroup east;
-							_rndtype = selectRandom ["o_g_soldier_ar_f", "o_g_soldier_gl_f", "o_g_sharpshooter_f", "o_soldieru_lat_f"];			
-							_randomDir = selectRandom [0, 45, 90, 135, 180, 225, 270, 315]; // units spawn from 8 main compass points
-							_unit = _grp createUnit [_rndtype, _pos, [], 1, "none"]; 
-							sleep 1;
-							_moveTo = dest getPos [5,_randomDir]; // 5m = they will try to overrun the patrol position!! 
-							_unit doMove _moveTo;
-							_unit setUnitPos "AUTO";
-							_unit setBehaviour _randomBehaviour;
-						}; 
-					}
-				}
-			};
+			}
+		};
 
 /*
 		_opCount = east countSide allUnits;
@@ -770,8 +749,7 @@ _patrolObj = {
 
 	// dynamic defence perimiter
 
-	while {dynamic360} do 
-	{
+	while {dynamic360} do {
 		// first count everything
 		_units1 = allUnits inAreaArray "BattleArea";
 		_unitCount = count _units1;
@@ -836,7 +814,6 @@ _patrolObj = {
 			systemChat "debug --- PATROL HAS CLEARED THE AREA - TIME FOR STATS";
 			STATS = true;
 		};
-
 	};
 
 
@@ -847,8 +824,7 @@ _patrolObj = {
 	// check to see if Blufor is in the area, and has enough units to claim victory
 	// add a range to say - not enough for victory, needs RF
 
-	if (STATS) then
-	{
+	if (STATS) then {
 		_opforCount = 0;
 		_blueforCount = 0;
 		_units1 = allUnits inAreaArray "BattleArea";
@@ -866,31 +842,28 @@ _patrolObj = {
 		
 		sleep 5;
 
-												/*		
-														hint "BATTLE STATS";
-														sleep 2;
-														_dead = 20 - _blueforCount; // this will change!!! fix this..
-														hint format ["The Patrol sufferd %1 KIA Casualties", _dead];
-														sleep 5;
-												*/
+		/*		
+				hint "BATTLE STATS";
+				sleep 2;
+				_dead = 20 - _blueforCount; // this will change!!! fix this..
+				hint format ["The Patrol sufferd %1 KIA Casualties", _dead];
+				sleep 5;
+		*/
 
-														/*
-														_strong = 100;
-														_injured = 100;
-														_badlyInjured = 100;
-														hint format [" TO BE COMPLETED!! ... of the remaining units %1 are in good shape, %2 are injured and can fight, %3 need urgent medical attention", _strong, _injured, _badlyInjured];
-														*/
+		/*
+		_strong = 100;
+		_injured = 100;
+		_badlyInjured = 100;
+		hint format [" TO BE COMPLETED!! ... of the remaining units %1 are in good shape, %2 are injured and can fight, %3 need urgent medical attention", _strong, _injured, _badlyInjured];
+		*/
 
 		STATS = false;
 		DECIDE = true;
 
 		// this determines if the script should reset itself, triggering the next obj, or whether to hold to wait for RF
-		while {DECIDE} do 
-		{
+		while {DECIDE} do {
 			//if ((_blueforCount) >= RGG_bluforProgress)  then 
-			if ((_blueforCount) >= 5)  then 
-
-			{
+			if ((_blueforCount) >= 5) then {
 				//_newObj = position player;
 				systemChat "debug --- THE PATROL HAS SECURED THE LOCATION, AND IS MOVING TO THE NEXT OBJECTIVE";
 				// TEST TO SEE IF THIS CAN TRACK BATTLE PROGRESS..?
@@ -910,9 +883,7 @@ _patrolObj = {
 			};
 
 			//if ((_blueforCount) < RGG_bluforHold)  then 
-			if ((_blueforCount) < 5)  then 
-
-			{
+			if ((_blueforCount) < 5)  then {
 				//systemChat "Patrol will hold this position until RF arrives !!";
 				hint "MISSION FAILED .............................................................................!!!!!!!!!!!!!!!!!!!!!";
 			};
